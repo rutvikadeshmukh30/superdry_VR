@@ -3,316 +3,206 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Superdry Viman Nagar - Signature Wave WebXR</title>
-    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.2.0/dist/aframe-extras.min.js"></script>
-    <style>
-        body { margin: 0; overflow: hidden; background-color: #fff; }
-        #ui {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            z-index: 100; color: #333; text-align: center; font-family: sans-serif;
-            pointer-events: none;
-        }
-        #controls {
-            position: absolute; top: 20px; right: 20px; z-index: 200;
-        }
-        button {
-            padding: 10px 20px;
-            background: #FF4A00;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-        button:hover { background: #ff6a2b; }
-    </style>
-</head>
-<body>
-    <div id="ui">
-        <h1 style="color: #FF4A00; margin: 0;">SUPERDRY</h1>
-        <p>Full Inventory Concept | Navigation Ready</p>
-    </div>
-
-    <div id="controls">
-        <button onclick="toggleView()">TOGGLE TOP VIEW</button>
-    </div>
-
-    <a-scene 
-        renderer="antialias: true; colorManagement: true; exposure: 1.8;"
-        shadow="type: pcfsoft"
-        fog="type: exponential; density: 0.003; color: #ffffff"
-        background="color: #ffffff"
-    >
-        
-        <a-assets>
-            <canvas id="marbleCanvas" width="512" height="512"></canvas>
-            <canvas id="plasterCanvas" width="512" height="512"></canvas>
-            
-            <!-- Product Mixins -->
-            <a-mixin id="hero-item" grabbable-logic></a-mixin>
-            <a-mixin id="folded-item" geometry="primitive: box; width: 0.4; height: 0.12; depth: 0.3"></a-mixin>
-            <a-mixin id="spot" light="type: spot; intensity: 1.2; angle: 40; penumbra: 0.5; castShadow: true"></a-mixin>
-            <a-mixin id="chrome-rail" material="color: #ffffff; metalness: 1; roughness: 0.1"></a-mixin>
-            <a-mixin id="glass-shelf" material="color: #ffffff; opacity: 0.3; transparent: true; metalness: 1"></a-mixin>
-            <a-mixin id="hanging-shirt" geometry="primitive: box; width: 0.05; height: 1.0; depth: 0.6"></a-mixin>
-        </a-assets>
-
-        <!-- Player Rig -->
-        <a-entity id="rig" position="0 0 -12" movement-controls="controls: gamepad,keyboard,touch; speed: 0.15">
-            <a-entity id="mainCamera" camera position="0 1.6 0" look-controls></a-entity>
-            <a-entity id="leftHand" laser-controls="hand: left" raycaster="objects: .grabbable; far: 2"></a-entity>
-            <a-entity id="rightHand" laser-controls="hand: right" raycaster="objects: .nav-mesh, .grabbable; far: 10" 
-                      teleport-controls="cameraRig: #rig; teleportOrigin: [camera]; button: trigger; curveHitColor: #FF4A00"></a-entity>
-        </a-entity>
-
-        <!-- Top View Camera -->
-        <a-entity id="topViewCamera" camera="active: false" position="0 35 0" rotation="-90 0 0"></a-entity>
-
-        <!-- ARCHITECTURE -->
-        <a-plane id="floor" rotation="-90 0 0" width="15" height="30" position="0 0 0" 
-                 material="shader: standard; color: #ffffff; roughness: 0.05; metalness: 0.05; src: #marbleCanvas" 
-                 shadow="receive: true" class="nav-mesh"></a-plane>
-
-        <a-plane id="ceiling" rotation="90 0 0" width="15" height="30" position="0 8 0" 
-                 material="color: #F5F5F5; roughness: 1; metalness: 0"></a-plane>
-        
-        <a-entity position="0 7.5 0">
-            <a-light type="ambient" color="#ffffff" intensity="0.8"></a-light>
-            <a-box position="-7.4 0 0" width="0.2" height="0.1" depth="30" material="emissive: #fff; emissiveIntensity: 2; shader: flat"></a-box>
-            <a-box position="7.4 0 0" width="0.2" height="0.1" depth="30" material="emissive: #fff; emissiveIntensity: 2; shader: flat"></a-box>
-        </a-entity>
-
-        <a-entity id="walls">
-            <a-box position="0 4 15" width="15" height="8" depth="0.2" material="color: #FFFFFF; src: #plasterCanvas"></a-box>
-            <a-box position="0 4 -15" width="15" height="8" depth="0.2" material="color: #FFFFFF; src: #plasterCanvas"></a-box>
-            <a-box position="-7.5 4 0" width="0.2" height="8" depth="30" material="color: #FFFFFF; src: #plasterCanvas"></a-box>
-            <a-box position="7.5 4 0" width="0.2" height="8" depth="30" material="color: #FFFFFF; src: #plasterCanvas"></a-box>
-        </a-entity>
-
-        <a-entity position="0 5 -14.8">
-            <a-text value="SUPERDRY" align="center" color="#FF4A00" width="20" font="exo2bold" material="emissive: #FF4A00; emissiveIntensity: 0.4"></a-text>
-        </a-entity>
-
-        <a-entity signature-wave></a-entity>
-
-        <!-- PRODUCT INVENTORY -->
-
-        <!-- LEFT WALL RETAIL (Hanging & Folded) -->
-        <a-entity id="left-wall-retail" position="-7.3 0 0">
-            <!-- Unit 1: -10m -->
-            <a-entity position="0 0 -10">
-                <a-box width="0.1" height="2.5" depth="4" position="0 1.25 0" material="color: #eee"></a-box>
-                <a-entity position="0.3 1.8 0">
-                    <a-box width="0.4" height="0.05" depth="3.8" mixin="glass-shelf"></a-box>
-                    <a-entity mixin="folded-item" position="0 0.1 -1" material="color: #2c3e50"></a-entity>
-                    <a-entity mixin="folded-item" position="0 0.1 0" material="color: #FF4A00"></a-entity>
-                    <a-entity mixin="folded-item" position="0 0.1 1" material="color: #1a1a1a"></a-entity>
-                </a-entity>
-                <a-entity position="0.3 0.8 0">
-                    <a-cylinder rotation="90 0 0" radius="0.02" height="3.8" mixin="chrome-rail"></a-cylinder>
-                    <!-- Hanging items -->
-                    <a-entity mixin="hanging-shirt" position="0 -0.5 -1.2" material="color: #333"></a-entity>
-                    <a-entity mixin="hanging-shirt" position="0 -0.5 -0.6" material="color: #333"></a-entity>
-                    <a-entity mixin="hanging-shirt" position="0 -0.5 0" material="color: #FF4A00"></a-entity>
-                    <a-entity mixin="hanging-shirt" position="0 -0.5 0.6" material="color: #eee"></a-entity>
-                </a-entity>
-            </a-entity>
-
-            <!-- Unit 2: 0m -->
-            <a-entity position="0 0 0">
-                <a-box width="0.1" height="2.5" depth="4" position="0 1.25 0" material="color: #eee"></a-box>
-                <a-entity position="0.3 1.5 0" rotation="0 0 0">
-                    <a-box width="0.4" height="2.0" depth="0.05" position="0 0 -1.5" material="color: #333"></a-box>
-                    <a-box width="0.4" height="2.0" depth="0.05" position="0 0 0" material="color: #333"></a-box>
-                    <a-box width="0.4" height="2.0" depth="0.05" position="0 0 1.5" material="color: #333"></a-box>
-                </a-text>
-            </a-entity>
-        </a-entity>
-
-        <!-- RIGHT WALL RETAIL (Shelving Focus) -->
-        <a-entity id="right-wall-retail" position="7.3 0 0">
-             <!-- Unit 3: -5m -->
-             <a-entity position="0 0 -5">
-                <a-box width="0.1" height="3" depth="6" position="0 1.5 0" material="color: #eee"></a-box>
-                <!-- Grid of Folded items -->
-                <a-entity position="-0.3 0.5 0">
-                    <script>
-                        // Logic to generate a grid of boxes could go here, 
-                        // but for A-Frame we'll manually place a few key rows
-                    </script>
-                    <a-entity position="0 0.5 -1.5" mixin="folded-item" material="color: #1a1a1a"></a-entity>
-                    <a-entity position="0 0.5 0" mixin="folded-item" material="color: #1a1a1a"></a-entity>
-                    <a-entity position="0 0.5 1.5" mixin="folded-item" material="color: #1a1a1a"></a-entity>
-                    
-                    <a-entity position="0 1.2 -1.5" mixin="folded-item" material="color: #FF4A00"></a-entity>
-                    <a-entity position="0 1.2 0" mixin="folded-item" material="color: #FF4A00"></a-entity>
-                    <a-entity position="0 1.2 1.5" mixin="folded-item" material="color: #FF4A00"></a-entity>
-                    
-                    <a-entity position="0 1.9 -1.5" mixin="folded-item" material="color: #fff"></a-entity>
-                    <a-entity position="0 1.9 0" mixin="folded-item" material="color: #fff"></a-entity>
-                    <a-entity position="0 1.9 1.5" mixin="folded-item" material="color: #fff"></a-entity>
-                </a-entity>
-             </a-entity>
-             
-             <!-- Unit 4: 10m (Footwear) -->
-             <a-entity position="0 0 10">
-                <a-box width="0.1" height="2.5" depth="4" position="0 1.25 0" material="color: #333"></a-box>
-                <a-entity position="-0.4 0.8 0" class="grabbable" mixin="hero-item" geometry="primitive: box; width: 0.3; height: 0.15; depth: 0.5" material="color: #FF4A00"></a-entity>
-                <a-entity position="-0.4 1.4 0" class="grabbable" mixin="hero-item" geometry="primitive: box; width: 0.3; height: 0.15; depth: 0.5" material="color: #eee"></a-entity>
-                <a-entity position="-0.4 2.0 0" class="grabbable" mixin="hero-item" geometry="primitive: box; width: 0.3; height: 0.15; depth: 0.5" material="color: #111"></a-entity>
-             </a-entity>
-        </a-entity>
-
-        <!-- CENTER ISLANDS (Navigation Guidance) -->
-        
-        <!-- Entrance Island -->
-        <a-entity position="0 0 -5">
-            <a-box width="2.5" height="0.2" depth="2.5" material="color: #111"></a-box>
-            <a-entity position="0 0.6 0" geometry="primitive: cylinder; radius: 0.3; height: 1.2" material="color: #eee"></a-entity>
-            <a-entity mixin="spot" position="0 5 0" rotation="-90 0 0"></a-entity>
-        </a-entity>
-
-        <!-- Mid-Store Island -->
-        <a-entity position="0 0 3">
-            <a-box width="4" height="0.4" depth="1.5" material="color: #eee"></a-box>
-            <a-entity mixin="folded-item" position="-1 0.5 0" material="color: #FF4A00"></a-entity>
-            <a-entity mixin="folded-item" position="0 0.5 0" material="color: #333"></a-entity>
-            <a-entity mixin="folded-item" position="1 0.5 0" material="color: #FF4A00"></a-entity>
-        </a-entity>
-
-        <!-- Back Hero Monolith -->
-        <a-entity position="0 0.4 11">
-            <a-box width="4" height="0.8" depth="2" material="src: #marbleCanvas; color: #fff; roughness: 0.1" shadow="cast: true; receive: true"></a-box>
-            <a-entity id="hero-jacket" class="grabbable" position="-0.8 0.6 0" mixin="hero-item"
-                      geometry="primitive: box; width: 0.5; height: 0.8; depth: 0.2"
-                      material="color: #333; roughness: 1"></a-entity>
-            <a-entity id="hero-sneakers" class="grabbable" position="0.8 0.5 0" mixin="hero-item"
-                      geometry="primitive: box; width: 0.3; height: 0.2; depth: 0.5"
-                      material="color: #FF4A00"></a-entity>
-            <a-entity mixin="spot" position="0 6 0" rotation="-90 0 0" light="intensity: 1.5"></a-entity>
-        </a-entity>
-
-        <!-- BACK WALL "DENIM" GRID -->
-        <a-entity position="0 2 14.7">
-            <!-- Row 1 -->
-            <a-entity position="-5 1 0" mixin="folded-item" material="color: #1a1a1a"></a-entity>
-            <a-entity position="-3.5 1 0" mixin="folded-item" material="color: #2c3e50"></a-entity>
-            <a-entity position="-2 1 0" mixin="folded-item" material="color: #1a1a1a"></a-entity>
-            <a-entity position="0 1 0" mixin="folded-item" material="color: #FF4A00" geometry="width: 0.6"></a-entity>
-            <a-entity position="2 1 0" mixin="folded-item" material="color: #1a1a1a"></a-entity>
-            <a-entity position="3.5 1 0" mixin="folded-item" material="color: #2c3e50"></a-entity>
-            <a-entity position="5 1 0" mixin="folded-item" material="color: #1a1a1a"></a-entity>
-            <!-- Row 2 -->
-            <a-entity position="-5 0 0" mixin="folded-item" material="color: #2c3e50"></a-entity>
-            <a-entity position="-3.5 0 0" mixin="folded-item" material="color: #1a1a1a"></a-entity>
-            <a-entity position="-2 0 0" mixin="folded-item" material="color: #2c3e50"></a-entity>
-            <a-entity position="0 0 0" mixin="folded-item" material="color: #FF4A00" geometry="width: 0.6"></a-entity>
-            <a-entity position="2 0 0" mixin="folded-item" material="color: #2c3e50"></a-entity>
-            <a-entity position="3.5 0 0" mixin="folded-item" material="color: #1a1a1a"></a-entity>
-            <a-entity position="5 0 0" mixin="folded-item" material="color: #2c3e50"></a-entity>
-        </a-entity>
-
-    </a-scene>
+    <title>Superdry VR - Hand Gesture Locomotion</title>
+    <!-- A-Frame 1.4.2 -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 
     <script>
-        let isTopView = false;
+        // --- CONSTANTS ---
+        const PALETTE = {
+            body: '#6B7280',
+            joint: '#9CA3AF',
+            neon: '#ff4500',
+            espresso: '#3e2723'
+        };
 
-        function toggleView() {
-            isTopView = !isTopView;
-            const mainCam = document.getElementById('mainCamera');
-            const topCam = document.getElementById('topViewCamera');
-            const ceiling = document.getElementById('ceiling');
-            const rig = document.getElementById('rig');
-
-            if (isTopView) {
-                topCam.setAttribute('camera', 'active', true);
-                ceiling.setAttribute('visible', false);
-                rig.setAttribute('movement-controls', 'enabled', false);
-            } else {
-                mainCam.setAttribute('camera', 'active', true);
-                ceiling.setAttribute('visible', true);
-                rig.setAttribute('movement-controls', 'enabled', true);
-            }
-        }
-
-        function generateTextures() {
-            const mC = document.getElementById('marbleCanvas');
-            const mCtx = mC.getContext('2d');
-            mCtx.fillStyle = "#ffffff";
-            mCtx.fillRect(0,0,512,512);
-            mCtx.strokeStyle = "rgba(0,0,0,0.05)";
-            for(let i=0; i<40; i++) {
-                mCtx.beginPath();
-                mCtx.moveTo(Math.random()*512, 0);
-                mCtx.bezierCurveTo(Math.random()*512, 100, Math.random()*512, 400, Math.random()*512, 512);
-                mCtx.stroke();
-            }
-
-            const pC = document.getElementById('plasterCanvas');
-            const pCtx = pC.getContext('2d');
-            pCtx.fillStyle = "#FFFFFF";
-            pCtx.fillRect(0,0,512,512);
-            for(let i=0; i<8000; i++) {
-                pCtx.fillStyle = `rgba(0,0,0,${Math.random()*0.01})`;
-                pCtx.fillRect(Math.random()*512, Math.random()*512, 1, 1);
-            }
-        }
-
-        AFRAME.registerComponent('signature-wave', {
+        // --- HAND TRACKING & GESTURE SYSTEM ---
+        AFRAME.registerComponent('hand-gesture-locomotion', {
             init: function () {
-                const points = [
-                    new THREE.Vector3(7.3, 1, -12),
-                    new THREE.Vector3(7.3, 5, -5),
-                    new THREE.Vector3(3, 7.5, 0),
-                    new THREE.Vector3(-7.3, 4, 2),
-                    new THREE.Vector3(-7.3, 2, 8),
-                    new THREE.Vector3(-2, 7.5, 12),
-                    new THREE.Vector3(0, 4, 14.8),
-                    new THREE.Vector3(7.3, 6, 10),
-                    new THREE.Vector3(7.3, 2, -10)
+                this.rig = document.querySelector('#rig');
+                this.camera = document.querySelector('#head');
+                this.forwardSpeed = 1.8;
+                this.backwardSpeed = 1.5;
+                this.activeGesture = 'none'; // 'forward', 'backward', 'none'
+                
+                this.handJoints = { left: {}, right: {} };
+                this.setupAvatarHands('left');
+                this.setupAvatarHands('right');
+            },
+
+            setupAvatarHands: function(side) {
+                const handEl = document.querySelector(`#${side}-hand`);
+                const joints = [
+                    'wrist', 'thumb-tip', 'index-finger-tip', 'middle-finger-tip', 'ring-finger-tip', 'pinky-finger-tip'
                 ];
-                const curve = new THREE.CatmullRomCurve3(points);
-                const geometry = new THREE.TubeGeometry(curve, 160, 0.4, 12, false);
-                const material = new THREE.MeshStandardMaterial({
-                    color: 0xFF4A00,
-                    emissive: 0xFF4A00,
-                    emissiveIntensity: 0.3,
-                    metalness: 0.2,
-                    roughness: 0.4
-                });
-                const mesh = new THREE.Mesh(geometry, material);
-                this.el.setObject3D('mesh', mesh);
-            }
-        });
-
-        AFRAME.registerComponent('grabbable-logic', {
-            init: function() {
-                this.originalPos = new THREE.Vector3().copy(this.el.object3D.position);
-                this.originalRot = new THREE.Euler().copy(this.el.object3D.rotation);
-                this.isGrabbed = false;
-
-                this.el.addEventListener('mousedown', () => { 
-                    this.isGrabbed = true;
-                    this.el.setAttribute('material', 'opacity', 0.7);
-                });
-
-                this.el.addEventListener('mouseup', () => {
-                    this.isGrabbed = false;
-                    this.el.setAttribute('material', 'opacity', 1.0);
-                    this.el.setAttribute('position', this.originalPos);
-                    this.el.setAttribute('rotation', {x: THREE.MathUtils.radToDeg(this.originalRot.x), y: THREE.MathUtils.radToDeg(this.originalRot.y), z: THREE.MathUtils.radToDeg(this.originalRot.z)});
+                joints.forEach(j => {
+                    let jointEl = document.createElement('a-sphere');
+                    jointEl.setAttribute('radius', 0.012);
+                    jointEl.setAttribute('material', `color: ${PALETTE.joint}`);
+                    handEl.appendChild(jointEl);
+                    this.handJoints[side][j] = jointEl;
                 });
             },
-            tick: function() {
-                if(!this.isGrabbed) {
-                    this.el.object3D.rotation.y += 0.01;
+
+            tick: function (t, dt) {
+                const frame = this.el.sceneEl.frame;
+                const session = this.el.sceneEl.xrSession;
+                if (!frame || !session) return;
+
+                let movementDirection = 0; // 1 for forward, -1 for backward
+
+                session.inputSources.forEach(source => {
+                    if (!source.hand) return;
+
+                    const refSpace = this.el.sceneEl.renderer.xr.getReferenceSpace();
+                    const wrist = source.hand.get('wrist');
+                    const wristPose = frame.getJointPose(wrist, refSpace);
+
+                    if (wristPose) {
+                        // Update visual hand position
+                        const side = source.handedness;
+                        this.handJoints[side]['wrist'].object3D.position.copy(wristPose.transform.position);
+                        
+                        // GESTURE DETECTION
+                        // Use the orientation of the wrist to determine palm direction
+                        const orientation = wristPose.transform.orientation;
+                        const wristQuat = new THREE.Quaternion(orientation.x, orientation.y, orientation.z, orientation.w);
+                        const palmNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(wristQuat); // Normal vector out of palm
+                        
+                        // Vector from headset to hand
+                        const headPos = this.camera.object3D.getWorldPosition(new THREE.Vector3());
+                        const handPos = new THREE.Vector3().copy(wristPose.transform.position);
+                        const toHand = new THREE.Vector3().subVectors(handPos, headPos).normalize();
+
+                        const dot = palmNormal.dot(toHand);
+
+                        // Palm facing AWAY (Pushing Forward)
+                        if (dot < -0.5) {
+                            movementDirection = 1;
+                            this.activeGesture = 'forward';
+                        } 
+                        // Palm facing TOWARD (Pulling Backward)
+                        else if (dot > 0.5) {
+                            if (movementDirection !== 1) movementDirection = -1; // Forward takes priority
+                            this.activeGesture = 'backward';
+                        } else {
+                            this.activeGesture = 'none';
+                        }
+                    }
+                });
+
+                // Apply Movement
+                if (movementDirection !== 0) {
+                    const direction = new THREE.Vector3();
+                    this.camera.object3D.getWorldDirection(direction);
+                    direction.y = 0; // Lock to floor
+                    direction.normalize();
+
+                    const speed = movementDirection === 1 ? this.forwardSpeed : this.backwardSpeed;
+                    const velocity = direction.multiplyScalar(movementDirection * speed * (dt / 1000));
+                    this.rig.object3D.position.add(velocity);
                 }
+
+                this.updateUI();
+            },
+
+            updateUI: function() {
+                const fwdIcon = document.querySelector('#fwd-icon');
+                const bwdIcon = document.querySelector('#bwd-icon');
+                if (!fwdIcon || !bwdIcon) return;
+
+                fwdIcon.setAttribute('material', 'color', this.activeGesture === 'forward' ? PALETTE.neon : '#444');
+                bwdIcon.setAttribute('material', 'color', this.activeGesture === 'backward' ? PALETTE.neon : '#444');
             }
         });
 
-        window.onload = generateTextures;
+        // PROCEDURAL TEXTURE GENERATOR
+        AFRAME.registerComponent('procedural-texture', {
+            schema: { type: {type: 'string'} },
+            init: function () {
+                const canvas = document.createElement('canvas');
+                canvas.width = 256; canvas.height = 256;
+                const ctx = canvas.getContext('2d');
+                if (this.data.type === 'concrete') {
+                    ctx.fillStyle = '#2b1d1d'; ctx.fillRect(0,0,256,256);
+                    for(let i=0; i<3000; i++) { ctx.fillStyle='rgba(255,255,255,0.03)'; ctx.fillRect(Math.random()*256, Math.random()*256, 1, 1); }
+                } else if (this.data.type === 'wood') {
+                    ctx.fillStyle = '#3e2723'; ctx.fillRect(0,0,256,256);
+                    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+                    for(let i=0; i<100; i++) { ctx.fillRect(0, Math.random()*256, 256, 2); }
+                }
+                const tex = new THREE.CanvasTexture(canvas);
+                tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+                tex.repeat.set(4, 4);
+                this.el.addEventListener('object3dset', () => {
+                    const mesh = this.el.getObject3D('mesh');
+                    if (mesh && mesh.material) mesh.material.map = tex;
+                });
+            }
+        });
     </script>
+</head>
+<body>
+    <a-scene 
+        hand-gesture-locomotion
+        renderer="antialias: true; colorManagement: true;" 
+        fog="type: exponential; color: #110a08; density: 0.01"
+        background="color: #110a08"
+        webxr="optionalFeatures: hand-tracking">
+
+        <a-assets>
+            <a-mixin id="joint" geometry="primitive: sphere; radius: 0.01" material="color: #9CA3AF"></a-mixin>
+        </a-assets>
+
+        <!-- PLAYER RIG (Spawn at entrance) -->
+        <a-entity id="rig" position="0 0 6">
+            <a-camera id="head" look-controls position="0 1.6 0"></a-camera>
+            
+            <!-- Hand Entities -->
+            <a-entity id="left-hand">
+                <!-- WRIST HUD -->
+                <a-entity position="0 0.05 0.1" rotation="-90 0 0">
+                    <a-plane width="0.12" height="0.06" color="#000" opacity="0.8">
+                        <a-triangle id="fwd-icon" position="-0.03 0 0.01" scale="0.02 0.02 0.02" color="#444" rotation="0 0 0"></a-triangle>
+                        <a-triangle id="bwd-icon" position="0.03 0 0.01" scale="0.02 0.02 0.02" color="#444" rotation="0 0 180"></a-triangle>
+                        <a-text value="PUSH / PULL" align="center" width="0.2" position="0 -0.02 0.01"></a-text>
+                    </a-plane>
+                </a-entity>
+            </a-entity>
+            <a-entity id="right-hand"></a-entity>
+
+            <!-- AVATAR BODY -->
+            <a-sphere radius="0.15" scale="1 1.2 1" material="color: #6B7280" position="0 1.6 0"></a-sphere>
+            <a-cylinder radius="0.18" height="0.7" material="color: #6B7280" position="0 1.1 0"></a-cylinder>
+        </a-entity>
+
+        <!-- ENVIRONMENT -->
+        <a-plane position="0 0 -10" rotation="-90 0 0" width="30" height="40" procedural-texture="type: concrete"></a-plane>
+        
+        <!-- EXTERIOR FACADE -->
+        <a-entity position="0 5 0">
+            <a-box position="-6 0 0" width="8" height="10" depth="0.5" material="color: #3e2723"></a-box>
+            <a-box position="6 0 0" width="8" height="10" depth="0.5" material="color: #3e2723"></a-box>
+            <!-- Entrance Logo -->
+            <a-text value="SUPERDRY" align="center" width="18" position="0 2.5 0.3" color="#ff4500"></a-text>
+        </a-entity>
+
+        <!-- MIRROR (Right Wall) -->
+        <a-entity position="9.5 2 -10" rotation="0 -90 0">
+            <a-box width="5" height="4" depth="0.1" material="color: #222; metalness: 1; roughness: 0"></a-box>
+            <a-text value="REFLECTIVE MIRROR" align="center" width="4" color="#444" position="0 0 0.06"></a-text>
+        </a-entity>
+
+        <!-- FIXTURES -->
+        <a-entity position="0 0 -5">
+            <a-box position="0 0.4 0" width="3" height="0.8" depth="1.5" procedural-texture="type: wood"></a-box>
+            <a-box position="0 0.85 0" width="0.5" height="0.1" depth="0.3" material="color: #ff4500"></a-box>
+        </a-entity>
+
+        <!-- LIGHTING -->
+        <a-entity light="type: ambient; color: #ffe0b2; intensity: 0.5"></a-entity>
+        <a-entity light="type: point; color: #ff4500; intensity: 2; distance: 10" position="0 4 -5"></a-entity>
+
+    </a-scene>
 </body>
 </html>
