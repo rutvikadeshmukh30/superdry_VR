@@ -197,4 +197,167 @@
 
     </a-scene>
 </body>
+</html>                this.ray = document.createElement('a-cylinder');
+                this.ray.setAttribute('radius', '0.005');
+                this.ray.setAttribute('height', '1');
+                this.ray.setAttribute('color', this.orangeHex);
+                this.ray.setAttribute('material', 'opacity: 0; transparent: true; shader: flat;');
+                this.ray.setAttribute('position', '0 0 -0.5');
+                this.ray.setAttribute('rotation', '90 0 0');
+                this.el.appendChild(this.ray);
+
+                // Event Listeners for Pinch (WebXR Hand Tracking API)
+                this.el.addEventListener('pinchstarted', this.onPinchStart.bind(this));
+                this.el.addEventListener('pinchended', this.onPinchEnd.bind(this));
+            },
+
+            onPinchStart: function (evt) {
+                this.isPinching = true;
+                // Pinch Visualization (Orange Glow)
+                this.glow.setAttribute('material', `color: ${this.orangeHex}; opacity: 0.6`);
+                this.ray.setAttribute('material', 'opacity: 0.8');
+                
+                // Haptic Feedback (Double pulse simulation)
+                this.triggerHaptic(30);
+                setTimeout(() => this.triggerHaptic(30), 60);
+            },
+
+            onPinchEnd: function (evt) {
+                this.isPinching = false;
+                this.glow.setAttribute('material', 'opacity: 0');
+                this.ray.setAttribute('material', 'opacity: 0');
+                
+                // Execute Teleport
+                if (this.teleportTarget) {
+                    this.executeTeleport();
+                }
+            },
+
+            executeTeleport: function() {
+                // Haptic Feedback (Firm pulse)
+                this.triggerHaptic(100);
+                
+                // Calculate new position based on where the ray is pointing
+                // For this prototype, we teleport 3 meters forward in the direction the hand is pointing
+                let handRot = this.el.object3D.rotation;
+                let rigPos = this.rig.object3D.position;
+                
+                // Math to move forward along the Z axis of the hand
+                let direction = new THREE.Vector3(0, 0, -1);
+                direction.applyEuler(handRot);
+                
+                // Apply Teleport (Fade in/out would be handled by a separate camera fader component)
+                this.rig.setAttribute('position', {
+                    x: rigPos.x + (direction.x * 3),
+                    y: rigPos.y,
+                    z: rigPos.z + (direction.z * 3)
+                });
+            },
+
+            triggerHaptic: function(duration) {
+                const trackedControls = this.el.components['hand-tracking-controls'];
+                if (trackedControls && trackedControls.mesh && trackedControls.mesh.gamepad) {
+                    const gamepad = trackedControls.mesh.gamepad;
+                    if (gamepad.hapticActuators && gamepad.hapticActuators.length > 0) {
+                        gamepad.hapticActuators[0].pulse(1.0, duration);
+                    }
+                }
+            },
+
+            tick: function (time, timeDelta) {
+                if (this.isPinching) return; // Prioritize teleport
+
+                let rotation = this.el.object3D.rotation;
+                let currentPitch = THREE.MathUtils.radToDeg(rotation.x);
+                let dt = timeDelta / 1000;
+
+                // Push Gesture: Palm facing away (Hand pitched upright like a stop sign)
+                // Note: Exact Euler angles depend on WebXR hand joint mapping. These are approximations.
+                if (currentPitch > 45 && currentPitch < 135) {
+                    this.glow.setAttribute('material', 'color: #0088ff; opacity: 0.4'); // Blue glow
+                    this.moveRig(this.data.moveSpeed * dt, true);
+                } 
+                // Pull Gesture: Palm facing user (Hand pitched downwards)
+                else if (currentPitch < -45 && currentPitch > -135) {
+                    this.glow.setAttribute('material', 'color: #ff0044; opacity: 0.4'); // Red glow
+                    this.moveRig(this.data.pullSpeed * dt, false);
+                } 
+                // Neutral
+                else {
+                    this.glow.setAttribute('material', 'opacity: 0');
+                }
+            },
+
+            moveRig: function(distance, isForward) {
+                let cameraRot = this.camera.object3D.rotation;
+                let rigPos = this.rig.object3D.position;
+                
+                let direction = new THREE.Vector3(0, 0, isForward ? -1 : 1);
+                // Move based on where the HEAD is looking, as per standard VR conventions
+                direction.applyEuler(new THREE.Euler(0, cameraRot.y, 0)); 
+                
+                this.rig.setAttribute('position', {
+                    x: rigPos.x + (direction.x * distance),
+                    y: rigPos.y,
+                    z: rigPos.z + (direction.z * distance)
+                });
+            }
+        });
+    </script>
+</head>
+<body>
+    <!-- Request hand tracking feature in WebXR -->
+    <a-scene webxr="optionalFeatures: hand-tracking;">
+        
+        <!-- Environment (Sleek dark mode to make the brand colors pop) -->
+        <a-entity environment="preset: default; skyType: atmosphere; lighting: point; groundColor: #222; grid: 1x1; gridColor: #FF4A00;"></a-entity>
+
+        <!-- Superdry Branding Elements -->
+        <a-box position="0 2 -5" width="4" height="1" depth="0.2" color="#FF4A00" 
+               animation="property: position; to: 0 2.1 -5; dir: alternate; dur: 2000; loop: true">
+            <a-text value="SUPERDRY VOLUMETRIC" align="center" position="0 0 0.11" width="6" color="#FFFFFF"></a-text>
+        </a-box>
+
+        <!-- Dummy Store Shelves -->
+        <a-box position="-3 1 -3" width="1" height="2" depth="1" color="#333"></a-box>
+        <a-box position="3 1 -3" width="1" height="2" depth="1" color="#333"></a-box>
+
+        <!-- Player Rig -->
+        <a-entity id="player-rig" position="0 0 0">
+            <a-camera id="camera" position="0 1.6 0">
+                <!-- Fallback cursor for desktop debugging -->
+                <a-cursor visible="false" raycaster="objects: .clickable"></a-cursor>
+            </a-camera>
+
+            <!-- Left Hand with Wrist UI -->
+            <a-entity id="leftHand" 
+                      hand-tracking-controls="hand: left;" 
+                      superdry-locomotion="hand: left">
+                
+                <!-- Wrist-Mounted Control Panel (Attached to left forearm/wrist) -->
+                <!-- Positioned slightly back from the hand center -->
+                <a-entity position="0.06 -0.02 0.08" rotation="-45 90 0">
+                    <a-plane width="0.15" height="0.08" color="#111" material="shader: flat; opacity: 0.9">
+                        <!-- Mode Indicator -->
+                        <a-text value="MODE:" position="-0.06 0.02 0.01" width="0.5" color="#aaa"></a-text>
+                        <a-text value="LOCOMOTION" position="-0.01 0.02 0.01" width="0.5" color="#FF4A00"></a-text>
+                        
+                        <!-- Battery/Status -->
+                        <a-circle radius="0.005" color="#00FF00" position="0.06 0.02 0.01" material="shader: flat"></a-circle>
+                        
+                        <!-- Helper Text -->
+                        <a-text value="Push: Fwd | Pull: Back\nPinch: Teleport" position="-0.06 -0.015 0.01" width="0.45" color="#fff" wrap-count="25"></a-text>
+                    </a-plane>
+                </a-entity>
+            </a-entity>
+
+            <!-- Right Hand -->
+            <a-entity id="rightHand" 
+                      hand-tracking-controls="hand: right;" 
+                      superdry-locomotion="hand: right">
+            </a-entity>
+        </a-entity>
+
+    </a-scene>
+</body>
 </html>
